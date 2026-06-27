@@ -203,7 +203,7 @@ function normalizeConfig(c){
 }
 
 let state = loadLocal() || defaultState();
-let apiUrl = localStorage.getItem(LS_API) || "";
+let apiUrl = localStorage.getItem(LS_API) || "https://script.google.com/macros/s/AKfycbyuOqUTQvu7IVYtOlp__JbWhn_ig5M7QQzgIV5M1-MFSk15pCfCMQPnLYgja-yweTuY_g/exec";
 
 function loadLocal(){
   try{ const s=JSON.parse(localStorage.getItem(LS_STATE)); if(s&&s.config){ s.config=normalizeConfig(s.config); s.cells=s.cells||{}; return s; } }catch(e){}
