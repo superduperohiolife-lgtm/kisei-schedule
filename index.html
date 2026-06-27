@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>夏休み 帰省スケジュール</title>
+<style>
+  :root{
+    --bg:#f7f5f0; --card:#ffffff; --ink:#23211c; --soft:#6b665d; --muted:#9a948a;
+    --line:#e2dccf; --line2:#efeadd; --accent:#2d4a3e;
+    --sat-bg:#e8f0f8; --sat-ink:#1d4e89;
+    --sun-bg:#fbe9ec; --sun-ink:#b3324a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:"Meiryo UI","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+    background:var(--bg); color:var(--ink); -webkit-text-size-adjust:100%;
+    font-feature-settings:"palt"; line-height:1.5;
+  }
+  .wrap{max-width:1100px; margin:0 auto; padding:14px 12px 60px;}
+  header.top{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px;}
+  h1{font-size:19px; margin:0; letter-spacing:.02em;}
+  h1 .sub{font-size:11px; color:var(--muted); font-weight:normal; display:block; margin-top:2px; letter-spacing:0;}
+  .pill{font-size:12px; padding:5px 11px; border-radius:999px; border:1px solid var(--line); background:var(--card); white-space:nowrap;}
+  .pill.ok{background:#e7f4ec; border-color:#bfe0cd; color:#1c6b43;}
+  .pill.sync{background:#fff6e3; border-color:#ecd9a8; color:#8a6a18;}
+  .pill.off{background:#fdeaea; border-color:#f0c4c4; color:#a83232;}
+  .pill.local{background:#f0eee9; border-color:var(--line); color:var(--soft);}
+
+  details.panel{background:var(--card); border:1px solid var(--line); border-radius:8px; margin-bottom:12px; overflow:hidden;}
+  details.panel>summary{list-style:none; cursor:pointer; padding:12px 14px; font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px;}
+  details.panel>summary::-webkit-details-marker{display:none;}
+  details.panel>summary::after{content:"▾"; margin-left:auto; color:var(--muted); transition:transform .2s;}
+  details.panel[open]>summary::after{transform:rotate(180deg);}
+  .panel-body{padding:0 14px 16px; border-top:1px solid var(--line2);}
+  .row{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:12px;}
+  .lbl{font-size:11px; color:var(--muted); letter-spacing:.06em; width:100%; margin-bottom:-2px;}
+  input[type="text"],input[type="date"],input[type="url"]{
+    font-family:inherit; font-size:16px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink); min-width:0;
+  }
+  input[type="url"]{flex:1; min-width:200px;}
+  input.vname{flex:1; min-width:120px;}
+  input[type="color"]{width:34px; height:34px; padding:0; border:1px solid var(--line); border-radius:6px; background:#fff;}
+  button{font-family:inherit; font-size:13px; padding:8px 12px; border-radius:6px; border:1px solid var(--line); background:#fff; color:var(--ink); cursor:pointer;}
+  button:hover{border-color:var(--accent);}
+  button.primary{background:var(--accent); color:#fff; border-color:var(--accent);}
+  button.primary:hover{background:#243e33;}
+  button.tiny{padding:5px 8px; font-size:12px;}
+  button.del{color:#a83232; border-color:#f0c4c4;}
+  button:disabled{opacity:.45; cursor:not-allowed;}
+  .listrow{display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px dashed var(--line2);}
+  .listrow:last-child{border-bottom:none;}
+  .hint{font-size:11px; color:var(--muted); margin-top:6px;}
+
+  .legend{display:flex; flex-wrap:wrap; gap:6px 12px; align-items:center; margin:4px 2px 12px; font-size:11px; color:var(--soft);}
+  .legend .sw{display:inline-flex; align-items:center; gap:5px;}
+  .legend .dot{width:13px; height:13px; border-radius:3px; border:1px solid rgba(0,0,0,.08); display:inline-block;}
+
+  .scroll{overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--line); border-radius:8px; background:var(--card);}
+  table.grid{border-collapse:separate; border-spacing:0; width:max-content; min-width:100%;}
+  table.grid th,table.grid td{border-right:1px solid var(--line2); border-bottom:1px solid var(--line2); padding:0; text-align:center;}
+  table.grid thead th{position:sticky; top:0; z-index:5; background:#f3efe6; font-size:12px; font-weight:600; padding:8px 6px; border-bottom:1px solid var(--line);}
+  th.c-date,td.c-date{position:sticky; left:0; z-index:4; width:74px; min-width:74px; background:#fff;}
+  th.c-band,td.c-band{position:sticky; left:74px; z-index:4; width:40px; min-width:40px; background:#fff; font-size:11px; color:var(--soft);}
+  thead th.c-date,thead th.c-band{z-index:6;}
+  td.c-date{font-size:12px; padding:6px 4px; line-height:1.25;}
+  td.c-date .dnum{font-weight:700; font-size:13px;}
+  td.c-date .dwd{font-size:10px;}
+  td.c-date .dhol{font-size:9px; display:block; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  tr.daystart td{border-top:2px solid var(--line);}
+  td.c-date.sat,td.c-band.sat{background:var(--sat-bg); color:var(--sat-ink);}
+  td.c-date.sun,td.c-band.sun{background:var(--sun-bg); color:var(--sun-ink);}
+  td.cell{min-width:84px; width:84px; padding:0;}
+  td.cell.sat{background:#f1f6fb;}
+  td.cell.sun{background:#fdf2f4;}
+  td.cell select{
+    width:100%; height:40px; border:none; background:transparent; font-family:inherit; font-size:13px;
+    color:var(--ink); text-align:center; text-align-last:center; -webkit-appearance:none; appearance:none; cursor:pointer; padding:0 2px;
+  }
+  td.cell select:focus{outline:2px solid var(--accent); outline-offset:-2px;}
+  .empty-note{padding:24px; text-align:center; color:var(--muted); font-size:13px;}
+  footer{margin-top:18px; font-size:11px; color:var(--muted); text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>夏休み 帰省スケジュール<span class="sub">家族みんなで共有・更新 ／ AM・PM 単位</span></h1>
+    <span id="pill" class="pill local">⚙️ 未接続</span>
+  </header>
+
+  <details class="panel" id="syncPanel">
+    <summary>🔗 共有設定（クラウド同期）</summary>
+    <div class="panel-body">
+      <div class="row">
+        <span class="lbl">Apps Script の /exec URL</span>
+        <input type="url" id="apiUrl" placeholder="https://script.google.com/macros/s/＿＿＿/exec" />
+        <button class="primary" id="connectBtn">接続して同期</button>
+        <button id="resyncBtn">再同期</button>
+      </div>
+      <div class="hint">URLを登録すると、同じURLを開いた全員がこの表を共有・更新できます。記録はスプレッドシート側に保存されます（後勝ち）。</div>
+    </div>
+  </details>
+
+  <details class="panel" id="cfgPanel">
+    <summary>⚙️ 帰省者・期間・選択肢の設定</summary>
+    <div class="panel-body">
+
+      <div class="row"><span class="lbl">帰省者（最大8人）</span></div>
+      <div id="visitorList"></div>
+      <div class="row"><button id="addVisitor" class="tiny">＋ 帰省者を追加</button></div>
+
+      <div class="row" style="margin-top:18px;"><span class="lbl">期間の指定</span>
+        <input type="date" id="startDate" /> <span style="color:var(--muted);">〜</span> <input type="date" id="endDate" />
+        <button id="genRange" class="tiny">期間を反映</button>
+      </div>
+      <div class="row"><span class="lbl">個別に日付を追加</span>
+        <input type="date" id="oneDate" /> <button id="addDate" class="tiny">＋ 追加</button>
+      </div>
+      <div id="dateList" style="margin-top:8px;"></div>
+
+      <div class="row" style="margin-top:18px;"><span class="lbl">選択肢（ラベルと色を自由に作成）</span></div>
+      <div id="optList"></div>
+      <div class="row"><button id="addOpt" class="tiny">＋ 選択肢を追加</button></div>
+      <div class="hint">セルの選択ボックスにはここで作った選択肢が並びます。色はセルの背景に反映されます。</div>
+
+    </div>
+  </details>
+
+  <div class="legend" id="legend"></div>
+
+  <div class="scroll">
+    <table class="grid">
+      <thead><tr id="headRow"></tr></thead>
+      <tbody id="body"></tbody>
+    </table>
+    <div id="emptyNote" class="empty-note" style="display:none;">設定パネルで「帰省者」と「期間」を登録してください。</div>
+  </div>
+
+  <footer>記録の正本はGoogleスプレッドシート ／ 同期は後勝ち（last-write-wins）</footer>
+</div>
+
+<script>
+"use strict";
+
+/* ===== 2026年 国民の祝日・休日（内閣府／国立天文台に基づく） ===== */
+const HOLIDAYS = {
+  "2026-01-01":"元日","2026-01-12":"成人の日","2026-02-11":"建国記念の日",
+  "2026-02-23":"天皇誕生日","2026-03-20":"春分の日","2026-04-29":"昭和の日",
+  "2026-05-03":"憲法記念日","2026-05-04":"みどりの日","2026-05-05":"こどもの日",
+  "2026-05-06":"振替休日","2026-07-20":"海の日","2026-08-11":"山の日",
+  "2026-09-21":"敬老の日","2026-09-22":"国民の休日","2026-09-23":"秋分の日",
+  "2026-10-12":"スポーツの日","2026-11-03":"文化の日","2026-11-23":"勤労感謝の日"
+};
+const WD = ["日","月","火","水","木","金","土"];
+
+const LS_STATE="kisei_v1", LS_API="kisei_api";
+
+function genId(){ return Math.random().toString(36).slice(2,9); }
+function pad(n){ return String(n).padStart(2,"0"); }
+function ymd(y,m,d){ return y+"-"+pad(m)+"-"+pad(d); }
+function parseYmd(s){ const p=s.split("-"); return new Date(+p[0], +p[1]-1, +p[2], 12, 0, 0); }
+function dowOf(s){ return parseYmd(s).getDay(); }
+function genRange(start,end){
+  const out=[]; if(!start||!end) return out;
+  let a=parseYmd(start), b=parseYmd(end);
+  if(a>b){ const t=a; a=b; b=t; }
+  for(let d=new Date(a); d<=b; d.setDate(d.getDate()+1)){
+    out.push(ymd(d.getFullYear(), d.getMonth()+1, d.getDate()));
+  }
+  return out;
+}
+function hexA(hex,a){
+  const h=hex.replace("#",""); const r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
+  return "rgba("+r+","+g+","+b+","+a+")";
+}
+
+function defaultState(){
+  return {
+    config:{
+      visitors:[{id:genId(),name:"帰省者①"},{id:genId(),name:"帰省者②"},{id:genId(),name:"帰省者③"}],
+      dates: genRange("2026-08-10","2026-08-17"),
+      options:[
+        {id:"in",   label:"在",   color:"#1f7a4d"},
+        {id:"half", label:"半日", color:"#c98a1e"},
+        {id:"out",  label:"不在", color:"#9aa0a6"},
+        {id:"move", label:"移動", color:"#2563a8"},
+        {id:"tbd",  label:"未定", color:"#8b6fb0"}
+      ]
+    },
+    cells:{}
+  };
+}
+function normalizeConfig(c){
+  c = c || {};
+  return {
+    visitors: Array.isArray(c.visitors)? c.visitors.map(v=>({id:v.id||genId(), name:v.name||""})) : [],
+    dates: Array.isArray(c.dates)? c.dates.slice() : [],
+    options: Array.isArray(c.options)? c.options.map(o=>({id:o.id||genId(), label:o.label||"", color:o.color||"#888888"})) : []
+  };
+}
+
+let state = loadLocal() || defaultState();
+let apiUrl = localStorage.getItem(LS_API) || "";
+
+function loadLocal(){
+  try{ const s=JSON.parse(localStorage.getItem(LS_STATE)); if(s&&s.config){ s.config=normalizeConfig(s.config); s.cells=s.cells||{}; return s; } }catch(e){}
+  return null;
+}
+function saveLocal(){ try{ localStorage.setItem(LS_STATE, JSON.stringify(state)); }catch(e){} }
+
+/* ===== 同期表示 ===== */
+function setSync(kind){
+  const p=document.getElementById("pill");
+  const m={ok:["ok","🟢 同期済み"], sync:["sync","🟡 同期中…"], off:["off","🔴 オフライン"], local:["local","⚙️ 未接続"]};
+  const v=m[kind]||m.local;
+  p.className="pill "+v[0]; p.textContent=v[1];
+}
+
+/* ===== API ===== */
+async function apiGet(){
+  if(!apiUrl) return null;
+  setSync("sync");
+  try{
+    const res=await fetch(apiUrl,{method:"GET"});
+    const data=await res.json();
+    if(!data.ok) throw new Error(data.error||"err");
+    adopt(data); setSync("ok"); return data;
+  }catch(e){ setSync("off"); return null; }
+}
+async function apiPost(bodyObj){
+  if(!apiUrl) return null;
+  setSync("sync");
+  try{
+    const res=await fetch(apiUrl,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(bodyObj)});
+    const data=await res.json();
+    if(!data.ok) throw new Error(data.error||"err");
+    adopt(data); setSync("ok"); return data;
+  }catch(e){ setSync("off"); return null; }
+}
+function adopt(data){
+  state.config = normalizeConfig(data.config);
+  state.cells = data.cells || {};
+  saveLocal();
+}
+function pushConfig(key){ saveLocal(); if(apiUrl) apiPost({action:"setConfig", key:key, value:state.config[key]}); }
+function pushCell(key,val){
+  saveLocal();
+  if(!apiUrl) return;
+  const p=key.split("|");
+  apiPost({action:"setCell", date:p[0], ampm:p[1], vid:p[2], value:val});
+}
+
+/* ===== レンダリング ===== */
+function render(){ renderSettings(); renderLegend(); renderMatrix(); }
+
+function renderLegend(){
+  const el=document.getElementById("legend");
+  let h='<span class="sw"><span class="dot" style="background:var(--sat-bg)"></span>土</span>'+
+        '<span class="sw"><span class="dot" style="background:var(--sun-bg)"></span>日祝</span>';
+  state.config.options.forEach(o=>{
+    h+='<span class="sw"><span class="dot" style="background:'+hexA(o.color,0.55)+'"></span>'+esc(o.label)+'</span>';
+  });
+  el.innerHTML=h;
+}
+
+function renderSettings(){
+  const c=state.config;
+  // visitors
+  const vl=document.getElementById("visitorList");
+  vl.innerHTML = c.visitors.map(v=>(
+    '<div class="listrow" data-vid="'+v.id+'">'+
+      '<input type="text" class="vname" value="'+escAttr(v.name)+'" data-act="vname" />'+
+      '<button class="tiny del" data-act="vdel">削除</button>'+
+    '</div>'
+  )).join("");
+  document.getElementById("addVisitor").disabled = c.visitors.length>=8;
+
+  // dates
+  const dl=document.getElementById("dateList");
+  if(c.dates.length===0){ dl.innerHTML='<div class="hint">日付が未設定です。</div>'; }
+  else{
+    const sorted=c.dates.slice().sort();
+    dl.innerHTML = '<div class="row" style="gap:6px;">'+ sorted.map(d=>{
+      const g=dowOf(d); const hol=HOLIDAYS[d];
+      const cls = hol||g===0?"sun":(g===6?"sat":"");
+      return '<span class="listrow" style="border:1px solid var(--line); border-radius:6px; padding:4px 6px;">'+
+        '<span style="font-size:12px;'+(cls==="sun"?"color:var(--sun-ink)":cls==="sat"?"color:var(--sat-ink)":"")+'">'+
+        (+d.split("-")[1])+"/"+(+d.split("-")[2])+"("+WD[g]+")"+(hol?" "+esc(hol):"")+'</span>'+
+        '<button class="tiny" data-act="ddel" data-date="'+d+'" style="padding:2px 6px;">×</button></span>';
+    }).join("")+'</div>';
+  }
+
+  // options
+  const ol=document.getElementById("optList");
+  ol.innerHTML = c.options.map(o=>(
+    '<div class="listrow" data-oid="'+o.id+'">'+
+      '<input type="color" value="'+escAttr(o.color)+'" data-act="ocolor" />'+
+      '<input type="text" class="vname" value="'+escAttr(o.label)+'" data-act="olabel" />'+
+      '<button class="tiny del" data-act="odel">削除</button>'+
+    '</div>'
+  )).join("");
+}
+
+function renderMatrix(){
+  const c=state.config;
+  const head=document.getElementById("headRow");
+  const body=document.getElementById("body");
+  const emptyNote=document.getElementById("emptyNote");
+
+  if(c.visitors.length===0 || c.dates.length===0){
+    head.innerHTML=""; body.innerHTML=""; emptyNote.style.display="block"; return;
+  }
+  emptyNote.style.display="none";
+
+  head.innerHTML = '<th class="c-date">日付</th><th class="c-band">帯</th>' +
+    c.visitors.map(v=>'<th>'+esc(v.name||"　")+'</th>').join("");
+
+  const dates=c.dates.slice().sort();
+  const optMap={}; c.options.forEach(o=>optMap[o.id]=o);
+  let rows="";
+  dates.forEach(d=>{
+    const g=dowOf(d); const hol=HOLIDAYS[d];
+    const dcls = (hol||g===0)?"sun":(g===6?"sat":"");
+    const num=(+d.split("-")[1])+"/"+(+d.split("-")[2]);
+    ["AM","PM"].forEach((band,bi)=>{
+      const start = bi===0 ? " daystart" : "";
+      let r='<tr class="'+(start)+'">';
+      if(bi===0){
+        r+='<td class="c-date '+dcls+'"><span class="dnum">'+num+'</span> <span class="dwd">('+WD[g]+')</span>'+(hol?'<span class="dhol">'+esc(hol)+'</span>':"")+'</td>';
+      }else{
+        r+='<td class="c-date '+dcls+'"></td>';
+      }
+      r+='<td class="c-band '+dcls+'">'+band+'</td>';
+      c.visitors.forEach(v=>{
+        const key=d+"|"+band+"|"+v.id;
+        const val=state.cells[key]||"";
+        const o=optMap[val];
+        const bg = o ? hexA(o.color,0.20) : "";
+        let sel='<select data-key="'+key+'"'+(bg?' style="background:'+bg+'"':'')+'>';
+        sel+='<option value=""></option>';
+        c.options.forEach(op=>{
+          sel+='<option value="'+op.id+'"'+(op.id===val?" selected":"")+'>'+esc(op.label)+'</option>';
+        });
+        sel+='</select>';
+        r+='<td class="cell '+dcls+'">'+sel+'</td>';
+      });
+      r+='</tr>';
+      rows+=r;
+    });
+  });
+  body.innerHTML=rows;
+}
+
+function esc(s){ return String(s==null?"":s).replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m])); }
+function escAttr(s){ return String(s==null?"":s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m])); }
+
+/* ===== イベント ===== */
+// 設定パネル（委譲）
+document.getElementById("cfgPanel").addEventListener("change", e=>{
+  const t=e.target, act=t.dataset.act;
+  if(act==="vname"){ const id=t.closest("[data-vid]").dataset.vid; const v=state.config.visitors.find(x=>x.id===id); if(v){ v.name=t.value; pushConfig("visitors"); renderMatrix(); } }
+  if(act==="olabel"){ const id=t.closest("[data-oid]").dataset.oid; const o=state.config.options.find(x=>x.id===id); if(o){ o.label=t.value; pushConfig("options"); renderLegend(); renderMatrix(); } }
+  if(act==="ocolor"){ const id=t.closest("[data-oid]").dataset.oid; const o=state.config.options.find(x=>x.id===id); if(o){ o.color=t.value; pushConfig("options"); renderLegend(); renderMatrix(); } }
+});
+document.getElementById("cfgPanel").addEventListener("click", e=>{
+  const t=e.target, act=t.dataset.act;
+  if(act==="vdel"){ const id=t.closest("[data-vid]").dataset.vid; state.config.visitors=state.config.visitors.filter(x=>x.id!==id); pushConfig("visitors"); render(); }
+  if(act==="odel"){ const id=t.closest("[data-oid]").dataset.oid; state.config.options=state.config.options.filter(x=>x.id!==id); pushConfig("options"); render(); }
+  if(act==="ddel"){ const d=t.dataset.date; state.config.dates=state.config.dates.filter(x=>x!==d); pushConfig("dates"); render(); }
+});
+document.getElementById("addVisitor").addEventListener("click", ()=>{
+  if(state.config.visitors.length>=8) return;
+  state.config.visitors.push({id:genId(), name:"帰省者"+(state.config.visitors.length+1)});
+  pushConfig("visitors"); render();
+});
+document.getElementById("addOpt").addEventListener("click", ()=>{
+  state.config.options.push({id:genId(), label:"新規", color:"#777777"});
+  pushConfig("options"); render();
+});
+document.getElementById("genRange").addEventListener("click", ()=>{
+  const s=document.getElementById("startDate").value, en=document.getElementById("endDate").value;
+  if(!s||!en){ alert("開始日と終了日を入力してください"); return; }
+  state.config.dates=genRange(s,en); pushConfig("dates"); render();
+});
+document.getElementById("addDate").addEventListener("click", ()=>{
+  const d=document.getElementById("oneDate").value;
+  if(!d) return;
+  if(!state.config.dates.includes(d)) state.config.dates.push(d);
+  state.config.dates.sort(); pushConfig("dates"); render();
+});
+
+// マトリクス（委譲）
+document.getElementById("body").addEventListener("change", e=>{
+  const sel=e.target; if(sel.tagName!=="SELECT") return;
+  const key=sel.dataset.key, val=sel.value;
+  if(val) state.cells[key]=val; else delete state.cells[key];
+  const o=state.config.options.find(x=>x.id===val);
+  sel.style.background = o ? hexA(o.color,0.20) : "";
+  pushCell(key,val);
+});
+
+// 同期
+document.getElementById("connectBtn").addEventListener("click", async ()=>{
+  const u=document.getElementById("apiUrl").value.trim();
+  if(!u){ alert("/exec URL を入力してください"); return; }
+  apiUrl=u; localStorage.setItem(LS_API,u);
+  const data=await apiGet();
+  if(data){
+    const sc=data.config||{};
+    const empty=(!sc.visitors||!sc.visitors.length)&&(!sc.dates||!sc.dates.length)&&(!sc.options||!sc.options.length);
+    if(empty){ // サーバーが空なら、現在のローカル設定で初期化
+      await apiPost({action:"setConfig",key:"visitors",value:state.config.visitors});
+      await apiPost({action:"setConfig",key:"dates",value:state.config.dates});
+      await apiPost({action:"setConfig",key:"options",value:state.config.options});
+    }
+    render();
+  }
+});
+document.getElementById("resyncBtn").addEventListener("click", async ()=>{ if(await apiGet()) render(); });
+
+// 自動再取得（他端末の更新を反映：可視かつ編集中でない時）
+setInterval(async ()=>{
+  if(!apiUrl) return;
+  if(document.visibilityState!=="visible") return;
+  if(document.activeElement && document.activeElement.tagName==="SELECT") return;
+  const open=document.getElementById("cfgPanel").open || document.getElementById("syncPanel").open;
+  if(open) return;
+  if(await apiGet()) renderMatrix();
+}, 25000);
+document.addEventListener("visibilitychange", async ()=>{
+  if(document.visibilityState==="visible" && apiUrl){ if(await apiGet()) render(); }
+});
+
+/* ===== 初期化 ===== */
+function init(){
+  document.getElementById("apiUrl").value=apiUrl;
+  if(state.config.dates.length){
+    const s=state.config.dates.slice().sort();
+    document.getElementById("startDate").value=s[0];
+    document.getElementById("endDate").value=s[s.length-1];
+  }
+  setSync(apiUrl?"sync":"local");
+  render();
+  if(apiUrl){ apiGet().then(d=>{ if(d) render(); }); }
+}
+init();
+</script>
+</body>
+</html>
